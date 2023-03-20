@@ -71,6 +71,8 @@ class Floorplan:
         self.cells, self.cmap = [], dict()
         self.locks = set()
         self.logger = logger
+        self.robot = None
+        self.goal = None
 
         # first pass, read cells
         for r, line in enumerate(self.lines):
@@ -80,6 +82,8 @@ class Floorplan:
                     self.cmap[cell] = len(self.cells)
                     self.cells.append(cell)
                     if char == 'L': self.locks.add(cell)
+                    if char == 'R': self.robot = cell
+                    if char == 'G': self.goal = cell
 
         # second pass, read connections
         self.map = Map(len(self.cells))
@@ -129,7 +133,8 @@ class Instance:
 
         # place robot and goal
         free_cells = list(set(floorplan.cells) - floorplan.locks)
-        self.robot, self.goal = random.sample(free_cells, k=2)
+        self.robot = random.sample(free_cells, k=1)[0] if floorplan.robot is None else floorplan.robot
+        self.goal = random.sample(free_cells, k=1)[0] if floorplan.goal is None else floorplan.goal
         logger.debug(f'Init/goal: robot={self.robot}, goal={self.goal}')
 
         # construct high-level path from robot to goal
