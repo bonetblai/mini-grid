@@ -233,9 +233,6 @@ class Instance:
             # goal
             fd.write(f'  (:goal (at_robot p{self.floorplan.cmap[self.goal]}))\n')
             fd.write(f')\n')
-        pass
-
-
 
 
 def get_logger(name: str, log_file: Path, level = logging.INFO):
