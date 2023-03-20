@@ -1,0 +1,8 @@
+(move_right p35 p34)
+(move_right p34 p33)
+(move_right p33 p32)
+(move_right p32 p31)
+(move_right p31 p30)
+(move_down p30 p24)
+(move_down p24 p18)
+(move_down p18 p12)

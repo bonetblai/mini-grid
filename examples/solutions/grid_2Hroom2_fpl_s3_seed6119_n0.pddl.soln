@@ -1,0 +1,7 @@
+(move_right p3 p2)
+(pickup p2 key2)
+(move_up p2 p7)
+(unlock_from_left p7 p6 key2 shape2)
+(move_right p7 p6)
+(move_right p6 p5)
+(move_down p5 p1)

@@ -1,0 +1,3 @@
+(move_right p2 p1)
+(move_up p1 p5)
+(move_up p5 p9)

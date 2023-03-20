@@ -1,0 +1,8 @@
+(move_left p14 p15)
+(move_down p15 p12)
+(pickup p12 key1)
+(move_up p12 p15)
+(move_up p15 p18)
+(unlock_from_below p18 p19 key1 shape1)
+(move_up p18 p19)
+(move_up p19 p22)
