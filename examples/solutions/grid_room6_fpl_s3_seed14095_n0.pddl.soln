@@ -1,0 +1,5 @@
+(move p14 p15)
+(move p15 p21)
+(move p21 p22)
+(move p22 p28)
+(move p28 p34)

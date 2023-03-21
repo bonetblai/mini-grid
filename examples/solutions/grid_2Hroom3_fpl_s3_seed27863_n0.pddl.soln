@@ -1,0 +1,3 @@
+(move p8 p7)
+(move p7 p1)
+(move p1 p0)

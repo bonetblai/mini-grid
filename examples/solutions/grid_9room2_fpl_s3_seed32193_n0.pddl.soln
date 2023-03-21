@@ -1,0 +1,7 @@
+(move p23 p24)
+(move p24 p17)
+(pickup p17 key2)
+(unlock p17 p18 key2 shape2)
+(move p17 p18)
+(move p18 p19)
+(move p19 p25)

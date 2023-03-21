@@ -1,0 +1,7 @@
+(move p13 p12)
+(pickup p12 key0)
+(move p12 p13)
+(move p13 p11)
+(unlock p11 p9 key0 shape0)
+(move p11 p9)
+(move p9 p8)
