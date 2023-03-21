@@ -131,7 +131,11 @@ class Instance:
         # place robot and goal
         free_cells = list(set(floorplan.cells) - floorplan.locks)
         self.robot = random.sample(free_cells, k=1)[0] if floorplan.robot is None else floorplan.robot
-        self.goal = random.sample(free_cells, k=1)[0] if floorplan.goal is None else floorplan.goal
+        if floorplan.goal is None:
+            reachable_cells = floorplan.map.reachable_nodes(floorplan.cmap[self.robot])
+            self.goal = floorplan.cells[random.sample(list(reachable_cells), k=1)[0]]
+        else:
+            self.goal = floorplan.goal
         logger.debug(f'Init/goal: robot={self.robot}, goal={self.goal}')
 
         # construct high-level path from robot to goal
