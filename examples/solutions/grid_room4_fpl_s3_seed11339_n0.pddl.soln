@@ -1,4 +1,0 @@
-(move_left p12 p13)
-(move_down p13 p9)
-(move_down p9 p5)
-(move_down p5 p1)

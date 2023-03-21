@@ -1,6 +1,0 @@
-(move_left p18 p19)
-(move_left p19 p20)
-(move_left p20 p21)
-(move_down p21 p15)
-(move_down p15 p9)
-(move_down p9 p3)

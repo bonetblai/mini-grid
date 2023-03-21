@@ -1,8 +1,0 @@
-(move_down p8 p2)
-(pickup p2 key1)
-(move_up p2 p8)
-(unlock_from_right p8 p9 key1 shape1)
-(move_left p8 p9)
-(move_left p9 p10)
-(move_left p10 p11)
-(move_up p11 p17)

@@ -1,5 +1,0 @@
-(move_right p23 p22)
-(move_right p22 p21)
-(move_right p21 p20)
-(move_right p20 p19)
-(move_down p19 p13)

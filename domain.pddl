@@ -1,100 +1,86 @@
 (define (domain grid)
   (:requirements :strips)
   (:predicates
-    ; grid cells and geometry
+    ; types
     (place ?x)
-    (left ?x ?y)
-    (below ?x ?y)
-
-    ; shapes
-    (objshape ?s)
-
-    ; locked/open cells
-    ; (locked cells can be later opened with key of matching lock shape)
-    (open ?x)
-    (locked ?x)
-    (lock_shape ?x ?s)
-
-    ; keys and shapes
     (key ?k)
+    (shape ?s)
+    ; static predicates
+    (conn ?x ?y)
+    (key-shape ?k ?s)
+    (lock-shape ?x ?s)
+    ; fluents
     (at ?k ?x)
-    (key_shape ?k ?s)
-
-    ; robot
-    (at_robot ?x)
+    (at-robot ?x)
     (holding ?k)
-    (arm_empty)
+    (arm-empty)
+    (locked ?x)
+    (open ?x)
   )
 
-  ; move along unlocked cells
-  (:action move_left
+  ; move from ?curpos to adjacent ?nextpos that is open
+  (:action move
     :parameters (?curpos ?nextpos)
-    :precondition (and (place ?curpos) (place ?nextpos) (left ?nextpos ?curpos) 
-                       (at_robot ?curpos) (open ?nextpos))
-    :effect (and (at_robot ?nextpos) (not (at_robot ?curpos))))
+    :precondition (and (place ?curpos)
+                       (place ?nextpos)
+                       (conn ?curpos ?nextpos)
+                       (at-robot ?curpos)
+                       (open ?nextpos))
+    :effect (and (at-robot ?nextpos)
+                 (not (at-robot ?curpos))))
 
-  (:action move_right
-    :parameters (?curpos ?nextpos)
-    :precondition (and (place ?curpos) (place ?nextpos) (left ?curpos ?nextpos)
-                       (at_robot ?curpos) (open ?nextpos))
-    :effect (and (at_robot ?nextpos) (not (at_robot ?curpos))))
-
-  (:action move_up
-    :parameters (?curpos ?nextpos)
-    :precondition (and (place ?curpos) (place ?nextpos) (below ?curpos ?nextpos)
-                       (at_robot ?curpos) (open ?nextpos))
-    :effect (and (at_robot ?nextpos) (not (at_robot ?curpos))))
-
-  (:action move_down
-    :parameters (?curpos ?nextpos)
-    :precondition (and (place ?curpos) (place ?nextpos) (below ?nextpos ?curpos)
-                       (at_robot ?curpos) (open ?nextpos))
-    :effect (and (at_robot ?nextpos) (not (at_robot ?curpos))))
-
-  ; pickup/putdown keys
+  ; pick ?key that is at ?curpos when not holding another key
   (:action pickup
     :parameters (?curpos ?key)
-    :precondition (and (place ?curpos) (key ?key)
-                       (at_robot ?curpos) (at ?key ?curpos) (arm_empty))
-    :effect (and (holding ?key) (not (at ?key ?curpos)) (not (arm_empty))))
+    :precondition (and (place ?curpos)
+                       (key ?key)
+                       (at ?key ?curpos)
+                       (at-robot ?curpos)
+                       (arm-empty))
+    :effect (and (holding ?key)
+                 (not (at ?key ?curpos))
+                 (not (arm-empty))))
 
+  ; pick ?newkey at ?curpos while holding/dropping ?oldkey (equiv. to putdown followed by pickup)
+  (:action pickup-and-loose
+    :parameters (?curpos ?newkey ?oldkey)
+    :precondition (and (place ?curpos)
+                       (key ?newkey)
+                       (key ?oldkey)
+                       (at ?newkey ?curpos)
+                       (at-robot ?curpos)
+                       (holding ?oldkey))
+    :effect (and (holding ?newkey)
+                 (at ?oldkey ?curpos)
+                 (not (holding ?oldkey))
+                 (not (at ?newkey ?curpos))))
+
+  ; putdown ?key being held at ?curpos
   (:action putdown
     :parameters (?curpos ?key)
-    :precondition (and (place ?curpos) (key ?key)
-                       (at_robot ?curpos) (holding ?key))
-    :effect (and (arm_empty) (at ?key ?curpos) (not (holding ?key))))
+    :precondition (and (place ?curpos)
+                       (key ?key)
+                       (at-robot ?curpos)
+                       (holding ?key))
+    :effect (and (arm-empty)
+                 (at ?key ?curpos)
+                 (not (holding ?key))))
 
-  ; unlock cells with right key
-  (:action unlock_from_below
+  ; unlock ?lockpos adjacent to ?curpos using ?key begin held of matching ?shape
+  (:action unlock
     :parameters (?curpos ?lockpos ?key ?shape)
-    :precondition (and (place ?curpos) (place ?lockpos) (key ?key) (objshape ?shape)
-                       (key_shape ?key ?shape) (lock_shape ?lockpos ?shape)
-		       (at_robot ?curpos) (locked ?lockpos) (holding ?key)
-                       (below ?curpos ?lockpos))
-    :effect (and (open ?lockpos) (not (locked ?lockpos))))
-
-  (:action unlock_from_above
-    :parameters (?curpos ?lockpos ?key ?shape)
-    :precondition (and (place ?curpos) (place ?lockpos) (key ?key) (objshape ?shape)
-                       (key_shape ?key ?shape) (lock_shape ?lockpos ?shape)
-		       (at_robot ?curpos) (locked ?lockpos) (holding ?key)
-                       (below ?lockpos ?curpos))
-    :effect (and (open ?lockpos) (not (locked ?lockpos))))
-
-  (:action unlock_from_left
-    :parameters (?curpos ?lockpos ?key ?shape)
-    :precondition (and (place ?curpos) (place ?lockpos) (key ?key) (objshape ?shape)
-                       (key_shape ?key ?shape) (lock_shape ?lockpos ?shape)
-		       (at_robot ?curpos) (locked ?lockpos) (holding ?key)
-                       (left ?curpos ?lockpos))
-    :effect (and (open ?lockpos) (not (locked ?lockpos))))
-
-  (:action unlock_from_right
-    :parameters (?curpos ?lockpos ?key ?shape)
-    :precondition (and (place ?curpos) (place ?lockpos) (key ?key) (objshape ?shape)
-                       (key_shape ?key ?shape) (lock_shape ?lockpos ?shape)
-		       (at_robot ?curpos) (locked ?lockpos) (holding ?key)
-                       (left ?lockpos ?curpos))
-    :effect (and (open ?lockpos) (not (locked ?lockpos))))
+    :precondition (and (place ?curpos)
+                       (place ?lockpos)
+                       (key ?key)
+                       (shape ?shape)
+                       (conn ?curpos ?lockpos)
+                       (key-shape ?key ?shape)
+                       (lock-shape ?lockpos ?shape)
+                       (at-robot ?curpos)
+                       (locked ?lockpos)
+                       (holding ?key))
+    :effect (and (open ?lockpos)
+                 (not (locked ?lockpos))))
 )
+
 

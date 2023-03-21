@@ -87,19 +87,16 @@ class Floorplan:
 
         # second pass, read connections
         self.map = Map(len(self.cells))
-        self.left, self.below = dict(), dict()
         for (c, r) in self.cells:
             cell = (c, r)
             src = self.cmap[cell]
-            left = (c-1, r)
-            if left in self.cmap:
-                dst = self.cmap[left]
-                self.left[cell] = left
+            leftcell = (c-1, r)
+            if leftcell in self.cmap:
+                dst = self.cmap[leftcell]
                 self.map.add_edge(src, dst)
-            above = (c, r-1)
-            if above in self.cmap:
-                dst = self.cmap[above]
-                self.below[above] = cell
+            abovecell = (c, r-1)
+            if abovecell in self.cmap:
+                dst = self.cmap[abovecell]
                 self.map.add_edge(src, dst)
         logger.info(f'Floorplan: ncells={len(self.cells)}, locks={self.locks}')
 
@@ -138,8 +135,7 @@ class Instance:
         logger.debug(f'Init/goal: robot={self.robot}, goal={self.goal}')
 
         # construct high-level path from robot to goal
-        lock_free_map = floorplan.get_map() #open_locks=set(floorplan.locks))
-        robot_to_goal_path = lock_free_map.path(floorplan.cmap[self.robot], floorplan.cmap[self.goal])
+        robot_to_goal_path = floorplan.map.path(floorplan.cmap[self.robot], floorplan.cmap[self.goal])
         lock_path = [floorplan.cells[cell] for cell in robot_to_goal_path if floorplan.cells[cell] in floorplan.locks]
         logger.info(f'Path: init={self.robot}, goal={self.goal}, path={list(map(lambda i: floorplan.cells[i], robot_to_goal_path))}, locks={lock_path}')
 
@@ -193,7 +189,7 @@ class Instance:
                 fd.write(f' (place p{i})')
             fd.write(f'\n   ')
             for i, shape in enumerate(self.key_shapes):
-                fd.write(f' (objshape shape{shape})')
+                fd.write(f' (shape shape{shape})')
             fd.write(f'\n   ')
             for i, shape in enumerate(self.key_shapes):
                 fd.write(f' (key key{i})')
@@ -210,19 +206,18 @@ class Instance:
                         fd.write(f' (locked p{i})')
             fd.write('\n')
 
-            # init: left/below
-            fd.write(f'    ; Left/below relations\n')
-            for cell in self.floorplan.left:
-                fd.write(f'    (left p{self.floorplan.cmap[cell]} p{self.floorplan.cmap[self.floorplan.left[cell]]})\n')
-            for cell in self.floorplan.below:
-                fd.write(f'    (below p{self.floorplan.cmap[cell]} p{self.floorplan.cmap[self.floorplan.below[cell]]})\n')
+            # init: connected cells
+            fd.write(f'    ; Connected cells\n')
+            for src in range(self.floorplan.map.nodes):
+                for dst in self.floorplan.map.edges[src]:
+                    fd.write(f'    (conn p{src} p{dst})\n')
 
             # init: assign shapes
             fd.write(f'    ; Lock and key shapes\n')
             for cell in self.shape_map:
-                fd.write(f'    (lock_shape p{self.floorplan.cmap[cell]} shape{self.shape_map[cell]})\n')
+                fd.write(f'    (lock-shape p{self.floorplan.cmap[cell]} shape{self.shape_map[cell]})\n')
             for i, shape in enumerate(self.key_shapes):
-                fd.write(f'    (key_shape key{i} shape{shape})\n')
+                fd.write(f'    (key-shape key{i} shape{shape})\n')
 
             # init: place keys
             fd.write(f'    ; Key placement\n')
@@ -231,12 +226,12 @@ class Instance:
 
             # init: robot
             fd.write(f'    ; Robot placement\n')
-            fd.write(f'    (at_robot p{self.floorplan.cmap[self.robot]})\n')
-            fd.write(f'    (arm_empty)\n')
+            fd.write(f'    (at-robot p{self.floorplan.cmap[self.robot]})\n')
+            fd.write(f'    (arm-empty)\n')
             fd.write(f'  )\n')
 
             # goal
-            fd.write(f'  (:goal (at_robot p{self.floorplan.cmap[self.goal]}))\n')
+            fd.write(f'  (:goal (at-robot p{self.floorplan.cmap[self.goal]}))\n')
             fd.write(f')\n')
 
 
