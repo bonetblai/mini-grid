@@ -47,7 +47,7 @@ class Map:
         if goal < 0:
             return explored
         elif parent[goal] is None:
-            return []
+            return None
         else:
             src = goal
             rpath = []
@@ -58,7 +58,7 @@ class Map:
             rpath.append(init)
             return list(reversed(rpath))
 
-    def reachable_cells(self, init: int):
+    def reachable_nodes(self, init: int):
         return self.path(init, -1)
 
 class Floorplan:
@@ -136,6 +136,7 @@ class Instance:
 
         # construct high-level path from robot to goal
         robot_to_goal_path = floorplan.map.path(floorplan.cmap[self.robot], floorplan.cmap[self.goal])
+        assert robot_to_goal_path is not None, f"With all locks open, cell {self.goal} isn't reachable from {self.robot}"
         lock_path = [floorplan.cells[cell] for cell in robot_to_goal_path if floorplan.cells[cell] in floorplan.locks]
         logger.info(f'Path: init={self.robot}, goal={self.goal}, path={list(map(lambda i: floorplan.cells[i], robot_to_goal_path))}, locks={lock_path}')
 
@@ -149,7 +150,7 @@ class Instance:
             shape = self.shape_map[lock]
             logger.debug(f'i={i}, current_pos={floorplan.cells[current_pos]}, lock={lock}, shape={shape}')
             if self.key_locations[shape] == None:
-                reachable_cells = current_map.reachable_cells(current_pos) - previous_loc
+                reachable_cells = current_map.reachable_nodes(current_pos) - previous_loc
                 self.key_locations[shape] = random.sample(list(reachable_cells), k=1)[0]
                 logger.debug(f'key_location: shape={shape}, loc={floorplan.cells[self.key_locations[shape]]}, reachable_cells={list(map(lambda i: floorplan.cells[i], reachable_cells))}')
                 current_pos = self.key_locations[shape]
